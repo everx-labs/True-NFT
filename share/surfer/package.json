@@ -1,0 +1,18 @@
+{
+  "name": "@ton-contracts/surfer",
+  "version": "0.0.1",
+  "main": "index.ts",
+  "scripts": {
+    "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register -r dotenv/config -t 300000 'tests/**/*.test.ts'",
+    "compile": "node ./compile.js",
+    "test:compile": "npm run compile && npm run test"
+  },
+  "dependencies": {
+    "@ton-contracts/utils": "^0.0.1",
+    "@tonclient/core": "^1.16.0",
+    "@tonclient/lib-node": "^1.16.0",
+    "dotenv": "^10.0.0",
+    "mocha": "^8.4.0",
+    "typescript": "^4.3.2"
+  }
+}

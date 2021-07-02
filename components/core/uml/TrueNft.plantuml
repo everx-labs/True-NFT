@@ -1,0 +1,51 @@
+@startuml TrueNft
+header TrueNft
+title TrueNft
+skinparam WrapWidth 250
+skinparam classAttributeIconSize 0
+
+class NftRoot {
+  -_totalNfts: uint256
+  -{field}_pendingOwners: mapping(address => OnwerChange)
+  --
+  +constructor(codeNft: TvmCell, codeNftData: TvmCell)
+  +mintNft()  //onlyOwner//
+  +transferOwnership(addrNft: address, addrNftData: address, addrTo: address)  //onlyOwner//
+}
+class Nft {
+  -<b>_addrRoot</b>: address
+  -<b>_addrOwner</b>: address
+  ..initialData..
+  -{static} _addrNftData: address
+  --
+  +destruct()  //onlyRoot//
+  ..getters..
+  +getInfo(): address, address, address
+}
+class NftData {
+  -<b>_addrRoot</b>: address
+  -_addrOwner: address
+  -_addrAuthor: address
+  ..initialData..
+  -{static} _id: uint256
+  --
+  +constructor(addrOwner: address, addrAuthor: address)  //onlyRoot//
+  +setOwner(addrOwner: address)  //onlyRoot//
+  ..getters..
+  +getOwner(): address
+}
+class NftBasis {
+  ..initialData..
+  -{static} codeHashNftData: uint256
+  -{static} _addrRoot: address
+  --
+  +destruct(recipient: address)  //onlyOwner//
+  ..getters..
+  +getInfo(): address, uint256
+}
+
+NftRoot .left.> NftBasis: deploy
+NftRoot ..> Nft: deploy
+NftRoot ..> NftData: deploy
+Nft ..> NftData
+@enduml
