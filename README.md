@@ -12,3 +12,14 @@ These requirements are met if the system is implemented based on the following c
 - NFTData - customizable contract containing token data and transfer logic. 
 
 Explore core implementation and usage examples here -> https://github.com/tonlabs/True-NFT/tree/main/components/true-nft-core
+
+**Changelog 12 Jul 2021**
+
+The problem with the old specification - a query of all NftData on all NftRoots for a specific owner (Surf address) was needed
+The solution - an additional search index
+
+- search indexes were implemented within a single contract, so only one code needs to be stored
+- transfer mechanism was moved from NftRoot to NftData, so owner change with a single internal message is guaranteed
+- the amount of code didn't change, while all primary queries are implemented in indexes and basis
+- contract name was changed from Nft to Index (IndexOwner & IndexOwnerRoot are shown as different classes in the scheme, even though it's a single contract - it's deployed with different salt, therefore the hashCodes are different)
+- mapping in NftRoot and the mechanism of waiting for owner change was removed
