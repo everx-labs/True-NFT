@@ -4,9 +4,9 @@ import { TonClient } from "@tonclient/core";
 import pkgSafeMultisigWallet from "../../../ton-packages/SetCodeMultisig.package";
 import pkgMSIG from "../ton-packages/MSIG.package";
 
-import pkgNft from "../ton-packages/Nft.package";
-import pkgNftBasis from "../ton-packages/NftBasis.package";
-import pkgNftData from "../ton-packages/NftData.package";
+import pkgIndex from "../ton-packages/Index.package";
+import pkgIndexBasis from "../ton-packages/IndexBasis.package";
+import pkgData from "../ton-packages/Data.package";
 import pkgNftRoot from "../ton-packages/NftRoot.package";
 import pkgNftDebot from "../ton-packages/NftDebot.package";
 import pkgManager from "../ton-packages/Manager.package";
@@ -110,13 +110,13 @@ describe("main test debot", () => {
       tvc: pkgNftRoot.image,
     });
     const codeNftBasis = await client.boc.get_code_from_tvc({
-      tvc: pkgNftBasis.image,
+      tvc: pkgIndexBasis.image,
     });
-    const codeNftData = await client.boc.get_code_from_tvc({
-      tvc: pkgNftData.image,
+    const codeData = await client.boc.get_code_from_tvc({
+      tvc: pkgData.image,
     });
-    const codeNft = await client.boc.get_code_from_tvc({
-      tvc: pkgNft.image,
+    const codeIndex = await client.boc.get_code_from_tvc({
+      tvc: pkgIndex.image,
     });
 
     await smcDebot.call({
@@ -128,12 +128,12 @@ describe("main test debot", () => {
       input: codeNftBasis,
     });
     await smcDebot.call({
-      functionName: "setNftDataCode",
-      input: codeNftData,
+      functionName: "setDataCode",
+      input: codeData,
     });
     await smcDebot.call({
-      functionName: "setNftCode",
-      input: codeNft,
+      functionName: "setIndexCode",
+      input: codeIndex,
     });
     await smcDebot.call({
       functionName: "setManager",
@@ -142,7 +142,7 @@ describe("main test debot", () => {
       }
     });
     const bitmap = fs.readFileSync("./tests/surfer.jpg");
-    const strData = new Buffer(bitmap).toString("base64");
+    const strData = Buffer.from(bitmap).toString("base64");
 
     const length = 15000;
     const pattern = new RegExp(".{1," + length + "}", "g");
@@ -161,7 +161,7 @@ describe("main test debot", () => {
     await Promise.all(promises);
     
     console.log(
-      `./bin/tonos-cli --url http://0.0.0.0 debot fetch ${smcDebot.address}\n`
+      `tonos-cli --url http://0.0.0.0 debot fetch ${smcDebot.address}\n`
     );
   });
 });

@@ -17,8 +17,8 @@ contract Manager {
 
     function deployRoot(
         address addrOwner,
-        TvmCell codeNft,
-        TvmCell codeNftData,
+        TvmCell codeIndex,
+        TvmCell codeData,
         string name,
         string description,
         string tokenCode,
@@ -27,7 +27,7 @@ contract Manager {
         tvm.accept();
 
         TvmCell stateNftRoot = _buildNftRootState(addrOwner);
-        new NftRoot {stateInit: stateNftRoot, value: 0.4 ton}( codeNft, codeNftData, name, description, tokenCode, totalSupply);
+        new NftRoot {stateInit: stateNftRoot, value: 0.4 ton}( codeIndex, codeData, name, description, tokenCode, totalSupply);
     }
 
     function _buildNftRootState( address addrOwner) internal virtual view returns (TvmCell) {

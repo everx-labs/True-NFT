@@ -3,23 +3,23 @@ pragma AbiHeader expire;
 pragma AbiHeader time;
 pragma AbiHeader pubkey;
 
-import "../../../components/debots/src/Debot.sol";
-import "../../../components/debots/src/Terminal.sol";
-import "../../../components/debots/src/Menu.sol";
-import "../../../components/debots/src/Msg.sol";
-import "../../../components/debots/src/ConfirmInput.sol";
-import "../../../components/debots/src/AddressInput.sol";
-import "../../../components/debots/src/NumberInput.sol";
-import "../../../components/debots/src/AmountInput.sol";
-import "../../../components/debots/src/Sdk.sol";
-import "../../../components/debots/src/Upgradable.sol";
-import "../../../components/debots/src/UserInfo.sol";
-import "../../../components/debots/src/SigningBoxInput.sol";
+import "../../../components/debots/Interfaces/Debot.sol";
+import "../../../components/debots/Interfaces/Terminal.sol";
+import "../../../components/debots/Interfaces/Menu.sol";
+import "../../../components/debots/Interfaces/Msg.sol";
+import "../../../components/debots/Interfaces/ConfirmInput.sol";
+import "../../../components/debots/Interfaces/AddressInput.sol";
+import "../../../components/debots/Interfaces/NumberInput.sol";
+import "../../../components/debots/Interfaces/AmountInput.sol";
+import "../../../components/debots/Interfaces/Sdk.sol";
+import "../../../components/debots/Interfaces/Upgradable.sol";
+import "../../../components/debots/Interfaces/UserInfo.sol";
+import "../../../components/debots/Interfaces/SigningBoxInput.sol";
 
 import "./NftRoot.sol";
-import "./NftBasis.sol";
-import "./NftData.sol";
-import "./Nft.sol";
+import "./IndexBasis.sol";
+import "./Data.sol";
+import "./Index.sol";
 
 interface IMultisig {
     function submitTransaction(
@@ -42,8 +42,8 @@ interface IMultisig {
 interface IManager {
     function deployRoot(
         address addrOwner,
-        TvmCell codeNft,
-        TvmCell codeNftData,
+        TvmCell codeIndex,
+        TvmCell codeData,
         string name,
         string description,
         string tokenCode,
@@ -60,8 +60,8 @@ struct RootParams {
 }
 
 struct TransferParams {
-    address addrNft;
-    address addrNftData;
+    address addrIndex;
+    address addrData;
     address addrTo;
 }
 
@@ -71,7 +71,7 @@ struct NftParams {
 }
 
 struct NftResp {
-    address addrNftData;
+    address addrData;
     address owner;
 }
 
@@ -79,8 +79,8 @@ contract NftDebot is Debot, Upgradable {
 
     TvmCell _codeNFTRoot;
     TvmCell _codeBasis;
-    TvmCell _codeNftData;
-    TvmCell _codeNft;
+    TvmCell _codeData;
+    TvmCell _codeIndex;
 
     address _addrNFTRoot;
     uint256 _totalMinted;
@@ -91,8 +91,6 @@ contract NftDebot is Debot, Upgradable {
     address _addrManager;
 
     uint32 _keyHandle;
-
-    address _nftAddr;
 
     uint128 _price;
 
@@ -116,11 +114,11 @@ contract NftDebot is Debot, Upgradable {
     function setBasisCode(TvmCell code) public accept {
         _codeBasis = code;
     }
-    function setNftDataCode(TvmCell code) public accept {
-        _codeNftData = code;
+    function setDataCode(TvmCell code) public accept {
+        _codeData = code;
     }
-    function setNftCode(TvmCell code) public accept {
-        _codeNft = code;
+    function setIndexCode(TvmCell code) public accept {
+        _codeIndex = code;
     }
     function setManager(address addr) public accept {
         _addrManager = addr;
@@ -151,7 +149,7 @@ contract NftDebot is Debot, Upgradable {
     }
 
     function getRequiredInterfaces() public view override returns (uint256[] interfaces) {
-        return [ Terminal.ID, Menu.ID, AddressInput.ID, ConfirmInput.ID ];
+        return [ Terminal.ID, Menu.ID, AddressInput.ID, SigningBoxInput.ID, ConfirmInput.ID, AmountInput.ID ];
     }
 
     function start() public override {
@@ -264,8 +262,8 @@ contract NftDebot is Debot, Upgradable {
             TvmCell payload = tvm.encodeBody(
                 IManager.deployRoot,
                 _rootParams.addrOwner,
-                _codeNft,
-                _codeNftData,
+                _codeIndex,
+                _codeData,
                 _rootParams.name,
                 _rootParams.description,
                 _rootParams.tokenCode,
@@ -346,7 +344,7 @@ contract NftDebot is Debot, Upgradable {
 
     function deployNftStep2() public {
         Terminal.print(0, 'Let`s check data.');
-        Terminal.print(0, format("NftData address: {}", _transferParams.addrNftData));
+        Terminal.print(0, format("Data address: {}", _transferParams.addrData));
         Terminal.print(0, format("Comment: {}", _nftParams.comment));
         Terminal.print(0, format("Date of creation Nft: {}\n", _nftParams.creationDate));
         ConfirmInput.get(tvm.functionId(deployNftStep3), "Sign and deploy Root?");
@@ -380,7 +378,7 @@ contract NftDebot is Debot, Upgradable {
                 signBoxHandle: _keyHandle
             }(_addrNFTRoot, 2 ton, true, 3, payload);
         } else {
-            Terminal.print(0, format("NftData address: {}", _transferParams.addrNftData));
+            Terminal.print(0, format("Data address: {}", _transferParams.addrData));
             Terminal.print(0, "Wait for deploy....");
             ConfirmInput.get(tvm.functionId(deployNftStep5), "Check contract status?");
         }
@@ -391,7 +389,7 @@ contract NftDebot is Debot, Upgradable {
     }
     function deployNftStep5(bool value) public {
         if(value) {
-            this.checkNftData(_transferParams.addrNftData);
+            this.checkNftData(_transferParams.addrData);
         } else {
             this.fillContent(0);
         }
@@ -415,7 +413,7 @@ contract NftDebot is Debot, Upgradable {
         index;
         Terminal.print(0, "Fill the surf icon");
         TvmCell payload = tvm.encodeBody(
-            NftData.setNftDataContent,
+            Data.setNftDataContent,
             0,
             _surfContent
         );
@@ -430,11 +428,11 @@ contract NftDebot is Debot, Upgradable {
             callbackId: tvm.functionId(onFillContentSuccess),
             onErrorId: tvm.functionId(onError),
             signBoxHandle: _keyHandle
-        }(_transferParams.addrNftData, 2 ton, false, 3, payload);
+        }(_transferParams.addrData, 2 ton, false, 3, payload);
     }
 
     function onFillContentSuccess() public {
-        Terminal.print(0, format("Picture uploaded!\nAddress of nftData:\n{}", _transferParams.addrNftData));
+        Terminal.print(0, format("Picture uploaded!\nAddress of nftData:\n{}", _transferParams.addrData));
         this.transferOwnership(0);
     }
 
@@ -452,9 +450,7 @@ contract NftDebot is Debot, Upgradable {
     function transferOwnershipStep1(uint32 index) public {
         index;
         TvmCell payload = tvm.encodeBody(
-            NftRoot.transferOwnership,
-            _transferParams.addrNft,
-            _transferParams.addrNftData,
+            Data.transferOwnership,
             _transferParams.addrTo
         );
         optional(uint256) none;
@@ -468,7 +464,7 @@ contract NftDebot is Debot, Upgradable {
             callbackId: tvm.functionId(onTransferSuccess),
             onErrorId: tvm.functionId(onError),
             signBoxHandle: _keyHandle
-        }(_addrNFTRoot, 2 ton, true, 3, payload);
+        }(_transferParams.addrData, 2 ton, true, 3, payload);
     }
     function onTransferSuccess() public {
         Terminal.print(0, "Done!");
@@ -482,7 +478,7 @@ contract NftDebot is Debot, Upgradable {
         delete _owners;
         TvmBuilder salt;
         salt.store(_addrNFTRoot);
-        TvmCell code = tvm.setCodeSalt(_codeNftData, salt.toCell());
+        TvmCell code = tvm.setCodeSalt(_codeData, salt.toCell());
         uint256 codeHashNftData = tvm.hash(code);
         Sdk.getAccountsDataByHash(tvm.functionId(getNftDataByHash), codeHashNftData, address(0x0));
     }
@@ -493,8 +489,8 @@ contract NftDebot is Debot, Upgradable {
         }
         this.printNftData();
     }
-    function getNftData(address addrNftData) public {
-        NftData(addrNftData).getOwner{
+    function getNftData(address addrData) public {
+        Data(addrData).getOwner{
             abiVer: 2,
             extMsg: true,
             callbackId: tvm.functionId(setNftData),
@@ -504,12 +500,12 @@ contract NftDebot is Debot, Upgradable {
             sign: false
         }();
     }
-    function setNftData(address addrOwner, address addrNftData) public {
-        _owners.push(NftResp(addrNftData, addrOwner));
+    function setNftData(address addrOwner, address addrData) public {
+        _owners.push(NftResp(addrData, addrOwner));
     }
     function printNftData() public {
         for (uint i = 0; i < _owners.length; i++) {
-            string str = _buildNftDataPrint(i, _owners[i].addrNftData, _owners[i].owner);
+            string str = _buildNftDataPrint(i, _owners[i].addrData, _owners[i].owner);
             Terminal.print(0, str);
         }
         MenuItem[] items;
@@ -561,13 +557,13 @@ contract NftDebot is Debot, Upgradable {
     }
     function burnOneNftStep1(uint128 value) public {
         NftResp candidate = _owners[uint(value)];
-        Terminal.print(0, format("AddrNft: {}\nOwner: {}", candidate.addrNftData, candidate.owner));
+        Terminal.print(0, format("AddrNft: {}\nOwner: {}", candidate.addrData, candidate.owner));
         this.burnOneNftStep2(candidate);
     }
     function burnOneNftStep2(NftResp candidate) public {
         TvmCell payload = tvm.encodeBody(
             NftRoot.burn,
-            candidate.addrNftData,
+            candidate.addrData,
             candidate.owner
         );
         optional(uint256) none;
@@ -618,28 +614,28 @@ contract NftDebot is Debot, Upgradable {
     function resolveNftDataAddr() public {
         TvmBuilder salt;
         salt.store(_addrNFTRoot);
-        TvmCell codeNftData = tvm.setCodeSalt(_codeNftData, salt.toCell());
+        TvmCell codeData = tvm.setCodeSalt(_codeData, salt.toCell());
         TvmCell stateNftData = tvm.buildStateInit({
-            contr: NftData,
+            contr: Data,
             varInit: {_id: _totalMinted},
-            code: codeNftData
+            code: codeData
         });
         uint256 hashStateNftData = tvm.hash(stateNftData);
-        _transferParams.addrNftData = address.makeAddrStd(0, hashStateNftData);
+        _transferParams.addrData = address.makeAddrStd(0, hashStateNftData);
     }
 
     function resolveNftAddr() public {
         TvmBuilder salt;
         salt.store(_addrNFTRoot);
         salt.store(_addrMultisig);
-        TvmCell codeNft = tvm.setCodeSalt(_codeNft, salt.toCell());
+        TvmCell codeIndex = tvm.setCodeSalt(_codeIndex, salt.toCell());
         TvmCell stateNft = tvm.buildStateInit({
-            contr: Nft,
-            varInit: {_addrNftData: _transferParams.addrNftData},
-            code: codeNft
+            contr: Index,
+            varInit: {_addrData: _transferParams.addrData},
+            code: codeIndex
         });
         uint256 hashStateNft = tvm.hash(stateNft);
-        _transferParams.addrNft = address.makeAddrStd(0, hashStateNft);
+        _transferParams.addrIndex = address.makeAddrStd(0, hashStateNft);
     }
 
     /*
@@ -675,6 +671,7 @@ contract NftDebot is Debot, Upgradable {
     }
 
     function setKeyHandle(uint32 handle) public {
+            Terminal.print(0, 'You need to attach Multisig');
         _keyHandle = handle;
         restart();
     }

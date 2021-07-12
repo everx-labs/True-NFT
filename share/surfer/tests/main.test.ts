@@ -1,8 +1,8 @@
 import { TonClient } from "@tonclient/core";
-import pkgNft from "../ton-packages/Nft.package";
-import pkgNftData from "../ton-packages/NftData.package";
+import pkgIndex from "../ton-packages/Index.package";
+import pkgData from "../ton-packages/Data.package";
 import pkgNftRoot from "../ton-packages/NftRoot.package";
-import pkgNftBasis from "../ton-packages/NftBasis.package";
+import pkgIndexBasis from "../ton-packages/IndexBasis.package";
 import pkgSafeMultisigWallet from "../../../ton-packages/SetCodeMultisig.package";
 import TonContract from "@ton-contracts/utils/ton-contract";
 import { createClient } from "@ton-contracts/utils/client";
@@ -18,8 +18,10 @@ describe("main test", () => {
   let client: TonClient;
   let smcSafeMultisigWallet: TonContract;
   let smcNftRoot: TonContract;
-  let smcNft: TonContract;
-  let smcNftData: TonContract;
+  let smcIndex: TonContract;
+  let smcData: TonContract;
+  let zeroAddress = '0:0000000000000000000000000000000000000000000000000000000000000000';
+  let fakeAddress = "0:0000000000000000000000000000000000000000000000000000000000001111";
 
   before(async () => {
     client = createClient();
@@ -33,7 +35,6 @@ describe("main test", () => {
         secret: process.env.MULTISIG_SECRET,
       },
     });
-    console.log(process.env.MULTISIG_ADDRESS);
   });
 
   it("deploy NftRoot", async () => {
@@ -55,7 +56,7 @@ describe("main test", () => {
       functionName: "sendTransaction",
       input: {
         dest: smcNftRoot.address,
-        value: 1_000_000_000,
+        value: 10_000_000_000,
         bounce: false,
         flags: 2,
         payload: "",
@@ -66,11 +67,11 @@ describe("main test", () => {
 
     await smcNftRoot.deploy({
       input: {
-        codeNft: (
-          await client.boc.get_code_from_tvc({ tvc: pkgNft.image })
+        codeIndex: (
+          await client.boc.get_code_from_tvc({ tvc: pkgIndex.image })
         ).code,
-        codeNftData: (
-          await client.boc.get_code_from_tvc({ tvc: pkgNftData.image })
+        codeData: (
+          await client.boc.get_code_from_tvc({ tvc: pkgData.image })
         ).code,
         name: utf8ToHex("name"),
         description: utf8ToHex("desc"),
@@ -91,7 +92,7 @@ describe("main test", () => {
       abi: pkgNftRoot.abi,
       functionName: "deployBasis",
       input: {
-        codeBasis: (await client.boc.get_code_from_tvc({ tvc: pkgNftBasis.image })).code
+        codeIndexBasis: (await client.boc.get_code_from_tvc({ tvc: pkgIndexBasis.image })).code
       },
       dest: smcNftRoot.address,
       value: 1_000_000_000,
@@ -107,7 +108,7 @@ describe("main test", () => {
         comment: utf8ToHex("comment")
       },
       dest: smcNftRoot.address,
-      value: 1_000_000_000,
+      value: 2_000_000_000,
     });
   });
 
@@ -132,7 +133,7 @@ describe("main test", () => {
       const _smcNftBasis = new TonContract({
         client,
         name: "",
-        tonPackage: pkgNftBasis,
+        tonPackage: pkgIndexBasis,
         address: el.id,
       });
       return _smcNftBasis.run({
@@ -150,83 +151,23 @@ describe("main test", () => {
   });
 
   it("get my nfts", async () => {
-
-    const { codeHashNft } = (
-      await smcNftRoot.run({
-        functionName: "resolveCodeHashNft",
-        input: {addrOwner: process.env.MULTISIG_ADDRESS},
-      })
-    ).value;
-    console.log(codeHashNft);
-    
-    
-
-    let nfts = [];
-    let counter = 0;
-
-    while (nfts.length === 0 && counter <= 500) {
-      const qwe = await client.net.query_collection({
-        collection: "accounts",
-        filter: {
-          code_hash: { eq: codeHashNft.slice(2) },
-        },
-        result: "id",
-      });
-      counter++;
-      nfts = qwe.result;
-    }
-
-    const promises = nfts.map((el) => {
-      const _smcNft = new TonContract({
-        client,
-        name: "",
-        tonPackage: pkgNft,
-        address: el.id,
-      });
-      return _smcNft.run({
-        functionName: "getInfo",
-      });
-    });
-
-    const results = await Promise.all(promises);
-
-    results.forEach((el: any, i) => {
-      //TODO ...
-      console.log(el, i);
-    });
-  });
-
-  it("get Nft", async () => {
-    smcNftData = await getAddrNftData(
+    smcData = await getAddrNftData(
       client,
       smcNftRoot,
       smcSafeMultisigWallet
     );
 
-    console.log(`NftData address: ${smcNftData.address}`);
+    const results = await getMyNfts(client, smcData, zeroAddress);
 
-    smcNft = new TonContract({
-      client,
-      name: "NftRoot",
-      tonPackage: pkgNftRoot,
-      address: (
-        await smcNftRoot.run({
-          functionName: "resolveNft",
-          input: {
-            addrRoot: smcNftRoot.address,
-            addrNftData: smcNftData.address,
-            addrOwner: smcSafeMultisigWallet.address,
-          },
-        })
-      ).value.addrNft,
+    results.forEach((el: any, i) => {
+      //TODO ...
+      // console.log(el, i);
     });
-
-    console.log(`Nft address: ${smcNft.address}`);
   });
 
   it("set data", async () => {
     const bitmap = fs.readFileSync("./tests/surfer.jpg");
-    const strData = new Buffer(bitmap).toString("base64");
+    const strData = Buffer.from(bitmap).toString("base64");
 
     const length = 15000;
     const pattern = new RegExp(".{1," + length + "}", "g");
@@ -236,16 +177,15 @@ describe("main test", () => {
       await callThroughMultisig({
         client,
         smcSafeMultisigWallet,
-        abi: pkgNftData.abi,
+        abi: pkgData.abi,
         functionName: "setNftDataContent",
         input: {
           index: index,
           part: base64ToHex(el),
         },
-        dest: smcNftData.address,
+        dest: smcData.address,
         value: 400_000_000,
       });
-      console.log(0, index);
     });
 
     await Promise.all(promises);
@@ -255,29 +195,27 @@ describe("main test", () => {
     await callThroughMultisig({
       client,
       smcSafeMultisigWallet,
-      abi: pkgNftRoot.abi,
+      abi: pkgData.abi,
       functionName: "transferOwnership",
       input: {
-        addrNft: smcNft.address,
-        addrNftData: smcNftData.address,
         addrTo:
           "0:0000000000000000000000000000000000000000000000000000000000001111",
       },
-      dest: smcNftRoot.address,
+      dest: smcData.address,
       value: 1_000_000_000,
     });
 
     console.log(
-      await smcNftData.run({
+      await smcData.run({
         functionName: "getOwner",
       })
     );
   });
 
   it("get part of data", async () => {
-    const { codeHashNftData } = (
+    const { codeHashData } = (
       await smcNftRoot.run({
-        functionName: "resolveCodeHashNftData",
+        functionName: "resolveCodeHashData",
         input: {},
       })
     ).value;
@@ -286,7 +224,7 @@ describe("main test", () => {
       await client.net.query_collection({
         collection: "accounts",
         filter: {
-          code_hash: { eq: codeHashNftData.slice(2) },
+          code_hash: { eq: codeHashData.slice(2) },
         },
         result: "id",
       })
@@ -296,7 +234,7 @@ describe("main test", () => {
       const _smcNftData = new TonContract({
         client,
         name: "",
-        tonPackage: pkgNftData,
+        tonPackage: pkgData,
         address: el.id,
       });
       return await _smcNftData.run({
@@ -308,8 +246,8 @@ describe("main test", () => {
     const _smcNftData = new TonContract({
       client,
       name: "",
-      tonPackage: pkgNftData,
-      address: smcNftData.address,
+      tonPackage: pkgData,
+      address: smcData.address,
     });
     const res = await _smcNftData.run({
       functionName: "getInfo",
@@ -331,10 +269,11 @@ describe("main test", () => {
     smcNftRoot: TonContract,
     smcSafeMultisigWallet: TonContract
   ): Promise<TonContract> => {
-    let smcNftData: TonContract;
-    const { codeHashNftData } = (
+    
+    let smcData: TonContract;
+    const { codeHashData } = (
       await smcNftRoot.run({
-        functionName: "resolveCodeHashNftData",
+        functionName: "resolveCodeHashData",
         input: {},
       })
     ).value;
@@ -346,21 +285,19 @@ describe("main test", () => {
       const ad = await client.net.query_collection({
         collection: "accounts",
         filter: {
-          code_hash: { eq: codeHashNftData.slice(2) },
+          code_hash: { eq: codeHashData.slice(2) },
         },
         result: "id",
       });
       counter++;
       nftDatas = ad.result;
-      // console.log(0, counter);
-      // console.log(0, nftDatas);
     }
 
     const promises = nftDatas.map((el) => {
       const _smcNftData = new TonContract({
         client,
         name: "",
-        tonPackage: pkgNftData,
+        tonPackage: pkgData,
         address: el.id,
       });
       return _smcNftData.run({
@@ -372,15 +309,63 @@ describe("main test", () => {
 
     results.forEach((el: any, i) => {
       if (el.value.addrOwner === smcSafeMultisigWallet.address) {
-        smcNftData = new TonContract({
+        smcData = new TonContract({
           client,
           name: "NftData",
-          tonPackage: pkgNftData,
+          tonPackage: pkgData,
           address: nftDatas[i].id,
         });
       }
     });
+    
 
-    return smcNftData;
+    return smcData;
+  };
+
+  const getMyNfts = async (
+    client: TonClient,
+    smcData: TonContract,
+    rootAddr: string
+  ): Promise<any> => {
+    const { codeHashIndex } = (
+      await smcData.run({
+        functionName: "resolveCodeHashIndex",
+        input: {
+          addrRoot: rootAddr,
+          addrOwner: process.env.MULTISIG_ADDRESS
+        },
+      })
+      
+    ).value;
+
+    let nfts = [];
+    let counter = 0;
+
+    while (nfts.length === 0 && counter <= 500) {
+      const qwe = await client.net.query_collection({
+        collection: "accounts",
+        filter: {
+          code_hash: { eq: codeHashIndex.slice(2) },
+        },
+        result: "id",
+      });
+      counter++;
+      nfts = qwe.result;
+    }
+
+    const promises = nfts.map((el) => {
+      const _smcNft = new TonContract({
+        client,
+        name: "",
+        tonPackage: pkgIndex,
+        address: el.id,
+      });
+      return _smcNft.run({
+        functionName: "getInfo",
+      });
+    });
+
+    return await Promise.all(promises);
   };
 });
+
