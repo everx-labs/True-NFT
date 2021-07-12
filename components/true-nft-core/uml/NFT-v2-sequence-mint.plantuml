@@ -1,0 +1,18 @@
+@startuml NFT-v2
+header NFT-v2
+title NFT-v2-mintNft
+skinparam maxMessageSize 200
+skinparam guillemet true
+autonumber
+actor "Actor" as A
+participant "NftRoot" as R << NftRoot >>
+participant "Data" as D << Data >>
+participant "IO" as IO << IndexOwner >>
+participant "IOR" as IOR << IndexOwnerRoot >>
+A -> R ++: mintNft
+    R -> D ++: deploy
+deactivate R
+        D -> IO : deploy
+        D -> IOR : deploy
+deactivate D
+@enduml

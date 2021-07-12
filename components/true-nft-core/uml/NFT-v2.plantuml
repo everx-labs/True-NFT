@@ -1,0 +1,69 @@
+@startuml NFT-v2
+header NFT-v2
+title NFT-v2
+skinparam WrapWidth 250
+skinparam classAttributeIconSize 0
+
+class NftRoot {
+  -_totalMinted: uint256
+  -_addrBasis: address
+  ..initialData..
+  -{static}_addrOwner: address
+  --
+  +constructor(codeIndex: TvmCell, codeData: TvmCell)
+  +mintNft()
+  +deployBasis(codeIndexBasis: TvmCell)
+  +destructBasis()
+  ..getters..
+  +getInfo(): uint256
+}
+class IndexOwner {
+  -<b>_addrOwner</b>: address
+  -_addrRoot: address
+  ..initialData..
+  -{static} _addrData: address
+  --
+  constructor(root: address)
+  +destruct()
+  ..getters..
+  +getInfo(): address, address, address
+}
+class IndexOwnerRoot {
+  -<b>_addrOwner</b>: address
+  -<b>_addrRoot</b>: address
+  ..initialData..
+  -{static} _addrData: address
+  --
+  constructor(root: address)
+  +destruct()
+  ..getters..
+  +getInfo(): address, address, address
+}
+class Data {
+  -<b>_addrRoot</b>: address
+  -_addrOwner: address
+  -_addrAuthor: address
+  ..initialData..
+  -{static} _id: uint256
+  --
+  +constructor(addrOwner: address, codeIndex: TvmCell)  //onlyRoot//
+  +transferOwnership(addrTo: address)  //onlyOwner//
+  ..getters..
+  +getOwner(): address
+  +getInfo(): address, address, address
+}
+class IndexBasis {
+  ..initialData..
+  -{static} _addrRoot: address
+  -{static} _codeHashData: uint256
+  --
+  +constructor()  //onlyRoot//
+  +destruct()  //onlyRoot//
+  ..getters..
+  +getInfo(): address, uint256
+}
+NftRoot .left.> IndexBasis: deploy
+Data ..> IndexOwner: deploy
+Data ..> IndexOwnerRoot: deploy
+NftRoot ..> Data: deploy
+@enduml
