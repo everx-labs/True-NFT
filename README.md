@@ -11,4 +11,4 @@ These requirements are met if the system is implemented based on the following c
 - NFTIndex - fixed contract, index for simple user token search
 - NFTData - customizable contract containing token data and transfer logic. 
 
-Explore core implementation and usage examples here -> https://github.com/tonlabs/True-NFT/tree/main/components/core
+Explore core implementation and usage examples here -> https://github.com/tonlabs/True-NFT/tree/main/components/true-nft-core
