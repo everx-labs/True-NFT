@@ -112,6 +112,11 @@ contract Data is IData, IndexResolver {
     function destruct(address recipient) public {
         require(msg.sender == _addrRoot, 100);
 
+        address oldIndexOwner = resolveIndex(_addrRoot, address(this), _addrOwner);
+        IIndex(oldIndexOwner).destruct();
+        address oldIndexOwnerRoot = resolveIndex(address(0), address(this), _addrOwner);
+        IIndex(oldIndexOwnerRoot).destruct();
+
         recipient.transfer(0, false, 64);
         selfdestruct(recipient);
     }

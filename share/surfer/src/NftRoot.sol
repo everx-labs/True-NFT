@@ -98,11 +98,6 @@ contract NftRoot is DataResolver, IndexResolver {
 
     function burn(address dataAddress, address owner) public onlyOwner {
         require(msg.value >= (_price), 223);
-        
-        address oldIndexOwner = resolveIndex(address(this), dataAddress, owner);
-        IIndex(oldIndexOwner).destruct();
-        address oldIndexOwnerRoot = resolveIndex(address(0), dataAddress, owner);
-        IIndex(oldIndexOwnerRoot).destruct();
 
         Data(dataAddress).destruct
             {value: msg.value, flag: 3, bounce: true}
