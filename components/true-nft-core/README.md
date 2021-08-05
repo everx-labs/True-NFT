@@ -29,8 +29,8 @@ The proposed transfer mechanism ensures data consistency in the blockchain. It i
 
 ## Logic and Data
 
-NftRoot and Data separate data storage and logic in the system. Data is a data warehouse that can contain content of a completely different nature, up to images. He is responsible for the transfer of ownership. NftRoot is responsible for minting NTF, but may contain other functionality such as writing. 
+NftRoot and Data separate data storage and logic in the system. Data is a data warehouse that can contain content of a completely different nature, up to images. He is responsible for the transfer of ownership. NftRoot is responsible for minting NFT, but may contain other functionality such as writing. 
 
 ## Search
 
-The global search is carried out using the IndexBasis contract, which contains the NftRoot address. Since the NftRoot address is included in the initialData of IndexBasis, there can be one basis for one root. It also contains the Data codeHash, which in turn is salted with the root address. Using this codeHash, you can find all the Data for this root. Using the Index contract code, you can find all your NTF with one query.
+The global search is carried out using the IndexBasis contract, which contains the NftRoot address. Since the NftRoot address is included in the initialData of IndexBasis, there can be one basis for one root. It also contains the Data codeHash, which in turn is salted with the root address. Using this codeHash, you can find all the Data for this root. Using the Index contract code, you can find all your NFT with one query.
