@@ -2,11 +2,11 @@
 
 ## Description of system
 
-The system is built on the concept that blockchain is Key => Value storage. It consists of four smart contracts, two of which are implemented by NTF, and two are required for fast searches in the blockchain. It is important to note, the data that make up the NTF content is deployed once and does not affect the transfer of ownership. At the same time, you can easily find all NTF collections by the codeHash of the IndexBasis and Index contracts, while the code of these contracts is assumed to be unchanged for all NTF implementations. This approach will provide a global search across all NTF implementations. Based on this, it becomes obvious that the problem of storing data in ledgers or otherwise has been solved.
+The system is built on the concept that blockchain is Key => Value storage. It consists of four smart contracts, two of which are implemented by NFT, and two are required for fast searches in the blockchain. It is important to note, the data that make up the NFT content is deployed once and does not affect the transfer of ownership. At the same time, you can easily find all NFT collections by the codeHash of the IndexBasis and Index contracts, while the code of these contracts is assumed to be unchanged for all NFT implementations. This approach will provide a global search across all NFT implementations. Based on this, it becomes obvious that the problem of storing data in ledgers or otherwise has been solved.
 
 ## Smart contracts description 
 
-NftRoot - A smart contract that is responsible for the release of NTF.
+NftRoot - A smart contract that is responsible for the release of NFT.
 
 Data - The contract stores information, which is essentially NFT, and is also responsible for changing the owner. 
 
