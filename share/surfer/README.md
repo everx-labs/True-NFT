@@ -1,16 +1,16 @@
-# NFT tokens with surf (surf-truenft) by TON Surf
+# TIP-31 tokens with surf (surf-truenft-rsquad) by TON Surf
 
-The system consists of smart contracts that implement SurfMedal as a TrueNFT token.
+The system consists of smart contracts that implement SurfMedal as a TIP-31 token.
 
 ## Smart contracts description 
 
-NftRoot - A smart contract that is responsible for issuing NFT, burning NFT, changing owners of NFT, as well as for the global search for a token. 
+NftRoot - A smart contract that is responsible for the release of NFT.
 
-NftData - The contract stores information, which is essentially NFT. 
+Data - The contract stores information, which is essentially NFT, and is also responsible for changing the owner.
 
-Nft - The contract that is used to find all NFTs within Root for a specific owner. 
+Index - The contract that is used to find all NFTs for a specific owner.
 
-NftBasis - The contract that is used to find all Roots. 
+IndexBasis - The contract that is used to find all Roots and all NFTs.
 
 NftDebot - Debot for the administrator, which allows you to issue NFT and burn NFT. 
 
@@ -19,8 +19,8 @@ Manager - Auxiliary contract for deploying Root via Debot.
 ## NftRoot
 ```sh
 constructor (
-    TvmCell codeNft,
-    TvmCell codeNftData,
+    TvmCell codeIndex,
+    TvmCell codeData,
     string name,
     string description,
     string tokenCode,
@@ -33,19 +33,10 @@ Issues new NFT with comment from admin.
 ```sh
 function mintNft (uint64 creationDate, string comment) public onlyOwner;
 ```
-- transferOwnership
-Changes the owner of a specific NFT.
-```sh
-function transferOwnership (
-    address addrNft,
-    address addrNftData,
-    address addrTo
-) public onlyOwner;
-```
 - deployBasis
 Deploy a contract that adds this root to the global search.
 ```sh
-function deployBasis (TvmCell codeBasis) public onlyOwner;
+function deployBasis (TvmCell codeIndexBasis) public onlyOwner;
 ```
 - destructBasis
 Destroys the contract, and thereby excludes this root from the global search.
@@ -72,13 +63,14 @@ function setPrice (uint128 price) public onlyOwner;
 - burn
 Burnit NFT and sends funds to the owner of NFT.
 ```sh
-function burn (address nftDataAddress, address owner) public onlyOwner;
+function burn (address dataAddress, address owner) public onlyOwner;
 ```
 
-## NftData
+## Data
 ```sh
 constructor (
     address addrOwner,
+    TvmCell codeIndex,
     address addrAuthor,
     string name,
     string description,
@@ -88,10 +80,10 @@ constructor (
 );
 ```
 ##### Methods
-- setOwner
-Called by Root on transfer.
+- transferOwnership
+Changes the owner of a specific NFT.
 ```sh
-function setOwner (address addrOwner) public onlyRoot;
+function transferOwnership (address addrTo) public onlyOwner;
 ```
 - setNftDataContent
 Used to download content that must be divided into parts not exceeding 15 kb.
@@ -122,23 +114,27 @@ Used for burning.
 function destruct (address recipient) public onlyRoot;
 ```
 
-## Nft
+## Index
 ```sh
-constructor () onlyRoot;
+constructor (address root) public onlyData;
 ```
 ##### Methods
 - getInfo
 Returns Nft fields.
 ```sh
-function getInfo () public returns (address addrRoot, uint256 codeHashNftData);
+function getInfo () public returns (
+    address addrRoot,
+    address addrOwner,
+    address addrData
+);
 ```
 - destruct
 Used for burning and transfer.
 ```sh
-function destruct (address recipient) public onlyRoot;
+function destruct () public onlyData;
 ```
 
-## NftBasis
+## IndexBasis
 ```sh
 constructor () onlyRoot;
 ```
@@ -146,10 +142,10 @@ constructor () onlyRoot;
 - getInfo
 Returns Basis fields.
 ```sh
-function getInfo () public returns (address addrRoot, uint256 codeHashNftData);
+function getInfo () public returns (address addrRoot, uint256 codeHashData);
 ```
 - destruct
 Called to remove Root from global search.
 ```sh
-function destruct (address recipient) public onlyRoot;
+function destruct () public onlyRoot;
 ```

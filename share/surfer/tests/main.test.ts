@@ -65,39 +65,57 @@ describe("main test", () => {
 
     console.log(`NftRoot address: ${smcNftRoot.address}`);
 
-    await smcNftRoot.deploy({
-      input: {
-        codeIndex: (
-          await client.boc.get_code_from_tvc({ tvc: pkgIndex.image })
-        ).code,
-        codeData: (
-          await client.boc.get_code_from_tvc({ tvc: pkgData.image })
-        ).code,
-        name: utf8ToHex("name"),
-        description: utf8ToHex("desc"),
-        tokenCode: utf8ToHex("CodeToken"),
-        totalSupply: 640,
-      },
-      initialData: {
-        _addrOwner: smcSafeMultisigWallet.address,
-      },
+    /* -------------------------------------------------------------------------- */
+    /*                                 ANCHOR zxc                                 */
+    /* -------------------------------------------------------------------------- */
+
+
+    const bitmap = fs.readFileSync("./tests/surfer.jpg");
+    const strData = Buffer.from(bitmap).toString("base64");
+
+    const length = 15000;
+    const pattern = new RegExp(".{1," + length + "}", "g");
+    let res = strData.match(pattern);
+
+    const promises = res.map(async (el, index) => {
+      await smcNftRoot.deploy({
+        input: {
+          codeIndex: (
+            await client.boc.get_code_from_tvc({ tvc: pkgIndex.image })
+          ).code,
+          codeData: (
+            await client.boc.get_code_from_tvc({ tvc: pkgData.image })
+          ).code,
+          name: utf8ToHex("name"),
+          description: utf8ToHex("desc"),
+          tokenCode: utf8ToHex("CodeToken"),
+          totalSupply: 640,
+          index: index,
+          part: base64ToHex(el),
+        },
+        initialData: {
+          _addrOwner: smcSafeMultisigWallet.address,
+        },
+      });
     });
+
+    await Promise.all(promises);
   });
 
   it("deploy Basis and Nft", async () => {
 
-    await callThroughMultisig({
-      client,
-      smcSafeMultisigWallet,
-      abi: pkgNftRoot.abi,
-      functionName: "deployBasis",
-      input: {
-        codeIndexBasis: (await client.boc.get_code_from_tvc({ tvc: pkgIndexBasis.image })).code
-      },
-      dest: smcNftRoot.address,
-      value: 1_000_000_000,
-    });
-
+    // await callThroughMultisig({
+    //   client,
+    //   smcSafeMultisigWallet,
+    //   abi: pkgNftRoot.abi,
+    //   functionName: "deployBasis",
+    //   input: {
+    //     codeIndexBasis: (await client.boc.get_code_from_tvc({ tvc: pkgIndexBasis.image })).code
+    //   },
+    //   dest: smcNftRoot.address,
+    //   value: 1_000_000_000,
+    // });
+    
     await callThroughMultisig({
       client,
       smcSafeMultisigWallet,
@@ -105,50 +123,51 @@ describe("main test", () => {
       functionName: "mintNft",
       input: {
         creationDate: 1624276234,
-        comment: utf8ToHex("comment")
+        comment: utf8ToHex("comment"),
+        owner: process.env.MULTISIG_ADDRESS
       },
       dest: smcNftRoot.address,
       value: 2_000_000_000,
     });
   });
 
-  it("get all roots", async () => {
+  // it("get all roots", async () => {
 
-    let nftBasises = [];
-    let counter = 0;
+  //   let nftBasises = [];
+  //   let counter = 0;
 
-    while (nftBasises.length === 0 && counter <= 500) {
-      const qwe = await client.net.query_collection({
-        collection: "accounts",
-        filter: {
-          code_hash: { eq: process.env.BASIS_CODEHASH },
-        },
-        result: "id",
-      });
-      counter++;
-      nftBasises = qwe.result;
-    }
+  //   while (nftBasises.length === 0 && counter <= 500) {
+  //     const qwe = await client.net.query_collection({
+  //       collection: "accounts",
+  //       filter: {
+  //         code_hash: { eq: process.env.BASIS_CODEHASH },
+  //       },
+  //       result: "id",
+  //     });
+  //     counter++;
+  //     nftBasises = qwe.result;
+  //   }
 
-    const promises = nftBasises.map((el) => {
-      const _smcNftBasis = new TonContract({
-        client,
-        name: "",
-        tonPackage: pkgIndexBasis,
-        address: el.id,
-      });
-      return _smcNftBasis.run({
-        functionName: "getInfo",
-      });
-    });
+  //   const promises = nftBasises.map((el) => {
+  //     const _smcNftBasis = new TonContract({
+  //       client,
+  //       name: "",
+  //       tonPackage: pkgIndexBasis,
+  //       address: el.id,
+  //     });
+  //     return _smcNftBasis.run({
+  //       functionName: "getInfo",
+  //     });
+  //   });
 
-    const results = await Promise.all(promises);
+  //   const results = await Promise.all(promises);
 
-    results.forEach((el: any, i) => {
-      //TODO ...
-      // console.log(el, i);
+  //   results.forEach((el: any, i) => {
+  //     //TODO ...
+  //     // console.log(el, i);
       
-    });
-  });
+  //   });
+  // });
 
   it("get my nfts", async () => {
     smcData = await getAddrNftData(
@@ -158,59 +177,61 @@ describe("main test", () => {
     );
 
     const results = await getMyNfts(client, smcData, zeroAddress);
-
     results.forEach((el: any, i) => {
       //TODO ...
-      // console.log(el, i);
+      console.log(el, i);
     });
   });
 
-  it("set data", async () => {
-    const bitmap = fs.readFileSync("./tests/surfer.jpg");
-    const strData = Buffer.from(bitmap).toString("base64");
+  /* -------------------------------------------------------------------------- */
+  /*                                 ANCHOR zxc                                 */
+  /* -------------------------------------------------------------------------- */
+  // it("set data", async () => {
+  //   const bitmap = fs.readFileSync("./tests/surfer.jpg");
+  //   const strData = Buffer.from(bitmap).toString("base64");
 
-    const length = 15000;
-    const pattern = new RegExp(".{1," + length + "}", "g");
-    let res = strData.match(pattern);
+  //   const length = 15000;
+  //   const pattern = new RegExp(".{1," + length + "}", "g");
+  //   let res = strData.match(pattern);
 
-    const promises = res.map(async (el, index) => {
-      await callThroughMultisig({
-        client,
-        smcSafeMultisigWallet,
-        abi: pkgData.abi,
-        functionName: "setNftDataContent",
-        input: {
-          index: index,
-          part: base64ToHex(el),
-        },
-        dest: smcData.address,
-        value: 400_000_000,
-      });
-    });
+  //   const promises = res.map(async (el, index) => {
+  //     await callThroughMultisig({
+  //       client,
+  //       smcSafeMultisigWallet,
+  //       abi: pkgData.abi,
+  //       functionName: "setNftDataContent",
+  //       input: {
+  //         index: index,
+  //         part: base64ToHex(el),
+  //       },
+  //       dest: smcData.address,
+  //       value: 400_000_000,
+  //     });
+  //   });
 
-    await Promise.all(promises);
-  });
+  //   await Promise.all(promises);
+  // });
 
-  it("transfer ownership", async () => {
-    await callThroughMultisig({
-      client,
-      smcSafeMultisigWallet,
-      abi: pkgData.abi,
-      functionName: "transferOwnership",
-      input: {
-        addrTo:
-          "0:0000000000000000000000000000000000000000000000000000000000001111",
-      },
-      dest: smcData.address,
-      value: 1_000_000_000,
-    });
+  // it("transfer ownership", async () => {
+  //   await callThroughMultisig({
+  //     client,
+  //     smcSafeMultisigWallet,
+  //     abi: pkgData.abi,
+  //     functionName: "transferOwnership",
+  //     input: {
+  //       addrTo:
+  //         "0:0000000000000000000000000000000000000000000000000000000000001111",
+  //     },
+  //     dest: smcData.address,
+  //     value: 1_000_000_000,
+  //   });
 
-    console.log(
-      await smcData.run({
-        functionName: "getOwner",
-      })
-    );
-  });
+  //   console.log(
+  //     await smcData.run({
+  //       functionName: "getOwner",
+  //     })
+  //   );
+  // });
 
   it("get part of data", async () => {
     const { codeHashData } = (

@@ -5,6 +5,8 @@ pragma AbiHeader time;
 
 import './interfaces/IIndex.sol';
 
+import './libraries/Errors.sol';
+
 contract Index is IIndex {
     address _addrRoot;
     address _addrOwner;
@@ -12,12 +14,12 @@ contract Index is IIndex {
 
     constructor(address root) public {
         optional(TvmCell) optSalt = tvm.codeSalt(tvm.code());
-        require(optSalt.hasValue(), 101);
+        require(optSalt.hasValue(), Errors.ERROR_EMPTY_SALT);
         (address addrRoot, address addrOwner) = optSalt
             .get()
             .toSlice()
             .decode(address, address);
-        require(msg.sender == _addrData);
+        require(msg.sender == _addrData, Errors.ERROR_MESSAGE_SENDER_IS_NOT_OWNER);
         tvm.accept();
         _addrRoot = addrRoot;
         _addrOwner = addrOwner;
@@ -37,7 +39,7 @@ contract Index is IIndex {
     }
 
     function destruct() public override {
-        require(msg.sender == _addrData);
+        require(msg.sender == _addrData, Errors.ERROR_MESSAGE_SENDER_IS_NOT_OWNER);
         selfdestruct(_addrData);
     }
 }
