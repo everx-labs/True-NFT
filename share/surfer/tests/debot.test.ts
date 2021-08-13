@@ -60,8 +60,12 @@ describe("main test debot", () => {
         rootCode: pkgNftRoot.image
       }
     });
-    
-    const keys = await client.crypto.generate_random_sign_keys();
+
+    const newkeys = await client.crypto.generate_random_sign_keys();
+    const keys = {
+        public: process.env.DEBOT_PUBKEY as string || newkeys.public,
+        secret: process.env.DEBOT_SECRET as string || newkeys.secret,
+    };
     smcDebot = new TonContract({
       client,
       name: "NftDebot",
@@ -141,7 +145,7 @@ describe("main test debot", () => {
         addr: smcManager.address,
       }
     });
-    const bitmap = fs.readFileSync("./tests/surfer.png");
+    const bitmap = fs.readFileSync("./tests/surfer@3x.png");
     const strData = Buffer.from(bitmap).toString("base64");
 
     const length = 15000;
