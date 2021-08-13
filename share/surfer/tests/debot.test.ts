@@ -1,8 +1,7 @@
-import { createClient } from "@ton-contracts/utils/client";
+import { createClient, NETWORK_MAP } from "@ton-contracts/utils/client";
 import TonContract from "@ton-contracts/utils/ton-contract";
 import { TonClient } from "@tonclient/core";
 import pkgSafeMultisigWallet from "../../../ton-packages/SetCodeMultisig.package";
-import pkgMSIG from "../ton-packages/MSIG.package";
 
 import pkgIndex from "../ton-packages/Index.package";
 import pkgIndexBasis from "../ton-packages/IndexBasis.package";
@@ -71,6 +70,7 @@ describe("main test debot", () => {
     });
     await smcDebot.calcAddress();
     console.log('Debot addr', smcDebot.address);
+    console.log('Debot keys', JSON.stringify(keys));
 
     await smcSafeMultisigWallet.call({
       functionName: "sendTransaction",
@@ -141,7 +141,7 @@ describe("main test debot", () => {
         addr: smcManager.address,
       }
     });
-    const bitmap = fs.readFileSync("./tests/surfer.jpg");
+    const bitmap = fs.readFileSync("./tests/surfer.png");
     const strData = Buffer.from(bitmap).toString("base64");
 
     const length = 15000;
@@ -161,7 +161,7 @@ describe("main test debot", () => {
     await Promise.all(promises);
     
     console.log(
-      `tonos-cli --url http://0.0.0.0 debot fetch ${smcDebot.address}\n`
+      `tonos-cli --url ${NETWORK_MAP[process.env.NETWORK]} debot fetch ${smcDebot.address}\n`
     );
   });
 });
