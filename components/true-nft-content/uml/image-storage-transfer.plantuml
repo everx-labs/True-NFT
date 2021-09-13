@@ -1,0 +1,19 @@
+@startuml image-storage
+header image-storage
+title image-storage
+skinparam maxMessageSize 200
+skinparam guillemet true
+autonumber
+actor "Owner" as O
+participant "Data" as D << Data >>
+participant "Old Index" as OI << Old Index >>
+participant "New Index" as I <<New Index >>
+O --> D: transferOwnership(addrTo)
+activate D
+D -> OI: destruct
+D -> OI: destruct
+D -> I: deploy
+D -> I: deploy
+D -> D: _addrOwner = addrTo;
+deactivate D
+@enduml

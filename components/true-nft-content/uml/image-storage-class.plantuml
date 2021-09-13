@@ -1,0 +1,87 @@
+@startuml image-storage-class
+header image-storage-class
+title image-storage-class
+skinparam WrapWidth 250
+skinparam classAttributeIconSize 0
+
+class NftRoot {
+  -_totalMinted: uint256
+  -_addrBasis: address
+  ..initialData..
+  -{static}_addrOwner: address
+  --
+  +constructor(codeIndex: TvmCell, codeData: TvmCell)
+  +mintNft(wid: int8, chunks: uint8, mimeType: string)
+  +deployBasis(codeIndexBasis: TvmCell)
+  +destructBasis()
+  ..getters..
+  +getInfo(): uint256
+}
+class IndexOwner {
+  -<b>_addrOwner</b>: address
+  -_addrRoot: address
+  ..initialData..
+  -{static} _addrData: address
+  --
+  constructor(root: address)
+  +destruct()
+  ..getters..
+  +getInfo(): address, address, address
+}
+class IndexOwnerRoot {
+  -<b>_addrOwner</b>: address
+  -<b>_addrRoot</b>: address
+  ..initialData..
+  -{static} _addrData: address
+  --
+  constructor(root: address)
+  +destruct()
+  ..getters..
+  +getInfo(): address, address, address
+}
+class Data {
+  -<b>_addrRoot</b>: address
+  -_addrOwner: address
+  -_addrStorage: address
+  ..initialData..
+  -{static} _id: uint256
+  --
+  +constructor(addrOwner: address, codeIndex: TvmCell)  //onlyRoot//
+  +transferOwnership(addrTo: address)  //onlyOwner//
+  +onFillComplete()  //onlyStorage//
+  ..getters..
+  +getOwner(): address
+  +getInfo(): address, address, address, address
+}
+class Storage {
+  -<b>_addrRoot</b>: address
+  -<b>_addrAuthor</b>: address
+  -_mimeType: string
+  -{field} _content: mapping(uint8 => bytes)
+  -_chunks: uint8
+  -_complete: bool
+  ..initialData..
+  -{static} _addrData: address
+  --
+  +constructor(addrAuthor: address, chunks: uint8, mimeType: string)  //onlyRoot//
+  +fillContent(chunkNumber: uint8, part: bytes)  //onlyAuthor//
+  ..getters..
+  +getInfo(): address, address, address, string, mapping(uint128 => bytes)
+}
+class IndexBasis {
+  ..initialData..
+  -{static} _addrRoot: address
+  -{static} _codeHashData: uint256
+  --
+  +constructor()  //onlyRoot//
+  +destruct()  //onlyRoot//
+  ..getters..
+  +getInfo(): address, uint256
+}
+NftRoot .left.> IndexBasis: deploy
+Data ..> IndexOwner: deploy
+Data ..> IndexOwnerRoot: deploy
+NftRoot ..> Data: deploy
+NftRoot ..> Storage: deploy
+Storage <.left.> Data
+@enduml

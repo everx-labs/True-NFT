@@ -1,0 +1,26 @@
+@startuml image-storage
+header image-storage
+title image-storage
+skinparam maxMessageSize 200
+skinparam guillemet true
+autonumber
+actor "Author" as A
+participant "NftRoot" as R << NftRoot >>
+participant "Data" as D << Data >>
+participant "Storage" as S << Storage >>
+participant "Index" as I << Index >>
+A --> R: mint
+activate R
+R -> D: deploy
+R -> S: deploy
+deactivate R
+A --> S: fillContent
+activate S
+S -> S: after getting last chunk - set complete == true
+S -> D: onFillComplete
+deactivate S
+activate D
+D -> I: deploy
+D -> I: deploy
+deactivate D
+@enduml
