@@ -1,0 +1,41 @@
+{
+	"ABI version": 2,
+	"version": "2.2",
+	"header": ["time", "expire"],
+	"functions": [
+		{
+			"name": "constructor",
+			"inputs": [
+				{"name":"chunk","type":"bytes"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "getInfo",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"addrData","type":"address"},
+				{"name":"chunkNumber","type":"uint128"},
+				{"name":"chunk","type":"bytes"}
+			]
+		}
+	],
+	"data": [
+		{"key":1,"name":"_code","type":"cell"},
+		{"key":2,"name":"_addrData","type":"address"},
+		{"key":3,"name":"_chunkNumber","type":"uint128"}
+	],
+	"events": [
+	],
+	"fields": [
+		{"name":"_pubkey","type":"uint256"},
+		{"name":"_timestamp","type":"uint64"},
+		{"name":"_constructorFlag","type":"bool"},
+		{"name":"_code","type":"cell"},
+		{"name":"_addrData","type":"address"},
+		{"name":"_chunkNumber","type":"uint128"},
+		{"name":"_chunk","type":"bytes"}
+	]
+}

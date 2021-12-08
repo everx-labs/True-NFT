@@ -1,0 +1,45 @@
+{
+	"ABI version": 2,
+	"version": "2.2",
+	"header": ["time", "expire"],
+	"functions": [
+		{
+			"name": "constructor",
+			"inputs": [
+				{"name":"root","type":"address"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "getInfo",
+			"inputs": [
+			],
+			"outputs": [
+				{"name":"addrRoot","type":"address"},
+				{"name":"addrOwner","type":"address"},
+				{"name":"addrData","type":"address"}
+			]
+		},
+		{
+			"name": "destruct",
+			"inputs": [
+			],
+			"outputs": [
+			]
+		}
+	],
+	"data": [
+		{"key":1,"name":"_addrData","type":"address"}
+	],
+	"events": [
+	],
+	"fields": [
+		{"name":"_pubkey","type":"uint256"},
+		{"name":"_timestamp","type":"uint64"},
+		{"name":"_constructorFlag","type":"bool"},
+		{"name":"_addrRoot","type":"address"},
+		{"name":"_addrOwner","type":"address"},
+		{"name":"_addrData","type":"address"}
+	]
+}
