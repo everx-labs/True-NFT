@@ -146,7 +146,7 @@ contract Data is IData, IndexResolver, DataChunkResolver {
     function transferValidation() internal virtual inline {
         require(msg.sender == _addrOwner, Errors.INVALID_CALLER);
         require(msg.value >= Constants.DEPLOY_SM, Errors.INVALID_VALUE);
-        require(_onSale == true, Errors.CONTRACT_IS_ON_SALE);
+        require(_onSale != true, Errors.CONTRACT_IS_ON_SALE);
     }
 
     function transferLogic() internal virtual inline {
